@@ -16,6 +16,13 @@ testLists.append(RegexMaterial("THISISREGEXTEST", "([A-Z]*|[0-9]+)", True))
 testLists.append(RegexMaterial("abbbbb", "[^c]+", True))
 testLists.append(RegexMaterial("ccccc", "[^c]+", False))
 testLists.append(RegexMaterial("123", "[1-3]+", True))
+testLists.append(RegexMaterial("ad", "a(bc)*d", True))
+testLists.append(RegexMaterial("abcd", "a(bc)*d", True))
+testLists.append(RegexMaterial("abcbcd", "a(bc)*d", True))
+testLists.append(RegexMaterial("abcdef", "a(b(cd)*e)?f", True))
+testLists.append(RegexMaterial("abef", "a(b(cd)*e)?f", True))
+testLists.append(RegexMaterial("af", "a(b(cd)*e)?f", True))
+testLists.append(RegexMaterial("abf", "a(b(cd)*e)?f", False))
 
 class TestRegex(unittest.TestCase):
     def test(self):
