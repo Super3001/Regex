@@ -21,18 +21,17 @@ def pattern(pattern_string):
     lexer = Lexer(pattern_string)
     lexer.advance()
     nfa_pair = NfaPair()
-    group(nfa_pair)
+    expr(nfa_pair)
     # log_nfa(nfa_pair.start_node)
 
     return nfa_pair.start_node
 
 
 """
-group ::= ("(" expr ")")*
 expr ::= factor_conn ("|" factor_conn)*
 factor_conn ::= factor | factor factor*
 factor ::= (term | term ("*" | "+" | "?"))*
-term ::= char | "[" char "-" char "]" | .
+term ::= char | "[" char "-" char "]" | . | "(" expr ")"
 """
 
 
@@ -44,6 +43,8 @@ def term(pair_out):
         nfa_dot_char(pair_out)
     elif lexer.match(Token.CCL_START):
         nfa_set_nega_char(pair_out)
+    elif lexer.match(Token.OPEN_PAREN):
+        nfa_paren_around(pair_out)
 
 
 # 匹配单个字符
@@ -147,7 +148,6 @@ def factor_conn(pair_out):
 
 def is_conn(token):
     nc = [
-        Token.OPEN_PAREN,
         Token.CLOSE_PAREN,
         Token.AT_EOL,
         Token.EOS,
@@ -226,6 +226,19 @@ def nfa_option_closure(pair_out):
     return True
 
 
+# ()
+def nfa_paren_around(pair_out):
+    if not lexer.match(Token.OPEN_PAREN):
+        return False
+    
+    lexer.advance()
+    expr(pair_out)
+    if not lexer.match(Token.CLOSE_PAREN):
+        return False
+    lexer.advance()
+    return True
+
+
 def expr(pair_out):
     factor_conn(pair_out)
     pair = NfaPair()
@@ -246,32 +259,32 @@ def expr(pair_out):
     return True
 
 
-def group(pair_out):
-    if lexer.match(Token.OPEN_PAREN):
-        lexer.advance()
-        expr(pair_out)
-        if lexer.match(Token.CLOSE_PAREN):
-            lexer.advance()
-    elif lexer.match(Token.EOS):
-        return False
-    else: 
-        expr(pair_out)
+# def group(pair_out):
+#     if lexer.match(Token.OPEN_PAREN):
+#         lexer.advance()
+#         expr(pair_out)
+#         if lexer.match(Token.CLOSE_PAREN):
+#             lexer.advance()
+#     elif lexer.match(Token.EOS):
+#         return False
+#     else: 
+#         expr(pair_out)
 
-    while True:
-        pair = NfaPair()
-        if lexer.match(Token.OPEN_PAREN):
-            lexer.advance()
-            expr(pair)
-            pair_out.end_node.next_1 = pair.start_node
-            pair_out.end_node = pair.end_node
-            if lexer.match(Token.CLOSE_PAREN):
-                lexer.advance()
-        elif lexer.match(Token.EOS):
-            return False
-        else: 
-            expr(pair)
-            pair_out.end_node.next_1 = pair.start_node
-            pair_out.end_node = pair.end_node
+#     while True:
+#         pair = NfaPair()
+#         if lexer.match(Token.OPEN_PAREN):
+#             lexer.advance()
+#             expr(pair)
+#             pair_out.end_node.next_1 = pair.start_node
+#             pair_out.end_node = pair.end_node
+#             if lexer.match(Token.CLOSE_PAREN):
+#                 lexer.advance()
+#         elif lexer.match(Token.EOS):
+#             return False
+#         else: 
+#             expr(pair)
+#             pair_out.end_node.next_1 = pair.start_node
+#             pair_out.end_node = pair.end_node
 
     
     
